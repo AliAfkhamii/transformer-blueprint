@@ -1,0 +1,35 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual environments
+.venv/
+
+# PyCharm files
+.idea/
+
+# Jupyter Notebook checkpoints
+.ipynb_checkpoints/
+
+# macOS and Linux OS files
+.DS_Store
+*.swp
+*.swo
+
+# VSCode files (if you also open in VSCode)
+.vscode/
+
+# Python egg files
+*.egg-info/
+*.egg
+
+# Cache
+*.log
+*.pot
+*.pyc
+*.pyo
+.cache/
+.mypy_cache/
+.pytest_cache/
+coverage/
