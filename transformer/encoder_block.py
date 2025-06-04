@@ -2,17 +2,7 @@ from torch import nn
 
 from attention import MultiHeadAttention
 from ffn import FeedForwardNetwork
-
-
-class AddNorm(nn.Module):
-    def __init__(self, dim, dropout=0.1):
-        super().__init__()
-
-        self.Layer_norm = nn.LayerNorm(dim)
-        self.dropout = nn.Dropout(dropout)
-
-    def forward(self, x, y):
-        return self.layer_norm(x + self.dropout(y))
+from addnorm import AddNorm
 
 
 class EncoderBlock(nn.Module):
@@ -22,9 +12,9 @@ class EncoderBlock(nn.Module):
 
         self.attention = MultiHeadAttention(num_hiddens, num_heads, d_model, dropout, bias)
         self.ffn = FeedForwardNetwork(d_model, ff_dim)
+        self.add_norm = AddNorm(d_model, dropout)
 
     def forward(self, x):
-
         # attention sublayer followed by residual connection and Layer normalization
         y = self.add_norm(x, self.attention(x))
 
