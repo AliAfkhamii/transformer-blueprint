@@ -5,7 +5,7 @@ import torch.nn.functional as F
 import math
 
 
-class MultiHeadSelfAttention(nn.Module):
+class MultiHeadAttention(nn.Module):
     def __init__(self, num_hiddens, num_heads, d_model=None, dropout=0.1, bias=False):
         super().__init__()
 
