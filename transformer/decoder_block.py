@@ -24,7 +24,7 @@ class DecoderBlock(nn.Module):
         # Multi-Head Cross Attention sublayer
         x = self.add_norm2(x, self.cross_attention(queries=x, keys=x_enc, values=x_enc, valid_len=valid_len))
 
-        # Pair-Wise Feed-Forward Network sublayer
+        # Position-Wise Feed-Forward Network sublayer
         x = self.add_norm3(x, self.ffn(x))
 
         return x
