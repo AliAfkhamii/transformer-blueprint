@@ -6,12 +6,12 @@ import math
 
 
 class MultiHeadAttention(nn.Module):
-    def __init__(self, num_hiddens, num_heads, d_model=None, dropout=0.1, bias=False):
+    def __init__(self, num_hiddens, num_heads, model_dim=None, dropout=0.1, bias=False):
         super().__init__()
 
         # save hyperparameters
         self.num_heads = num_heads
-        self.d_model = d_model or num_hiddens
+        self.d_model = model_dim or num_hiddens
 
         assert self.d_model % num_heads == 0, \
             "model dimension must be divisible by number of heads. " \
@@ -26,7 +26,7 @@ class MultiHeadAttention(nn.Module):
         self.W_v = nn.LazyLinear(num_hiddens, bias=bias)
         self.W_o = nn.LazyLinear(num_hiddens, bias=bias)
 
-    def forward(self, queries, keys, values, mask=None):
+    def forward(self, queries, keys, values, valid_len=None, casual_mask=False, mask_value=-10e6):
         batch_size, seq_length, model_dim = queries.size()  # using "seq_length" and "no. of queries" interchangeably
 
         assert model_dim == self.d_model, \
@@ -40,7 +40,7 @@ class MultiHeadAttention(nn.Module):
 
         # [softmax(qk^T / sqrt(d))] with masking the paddings
         scores = torch.bmm(q, k.transpose(1, 2)) / math.sqrt(q.shape[-1])
-        self.attention_weights = self.masked_softmax(scores, mask)
+        self.attention_weights = self.masked_softmax(scores, valid_len, casual=casual_mask, value=mask_value)
 
         # scaled dot product attention heads
         attention_heads = torch.bmm(
@@ -108,12 +108,15 @@ class MultiHeadAttention(nn.Module):
         return x
 
     @staticmethod
-    def masked_softmax(logits, valid_len=None, dim=-1, value=-10e6):
+    def masked_softmax(logits, valid_len=None, casual=False, value=-10e6):
+        shape = logits.size()
+
+        if casual:
+            mask = torch.triu(torch.ones(shape[1], shape[1]), diagonal=1).bool()
+            return F.softmax(logits.masked_fill(mask, value=value), dim=-1)
 
         if valid_len is None:
-            return F.softmax(logits, dim=dim)
-
-        shape = logits.size()
+            return F.softmax(logits, dim=-1)
 
         if valid_len.dim() == 1:
             valid_len = torch.repeat_interleave(valid_len, shape[1])
@@ -135,4 +138,4 @@ class MultiHeadAttention(nn.Module):
         logits.masked_fill_(~mask, value)
 
         # reshape logits back to original shape and apply softmax along the intended axis
-        return F.softmax(logits.reshape(shape), dim=dim)
+        return F.softmax(logits.reshape(shape), dim=-1)
