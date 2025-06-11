@@ -6,31 +6,31 @@ import math
 
 
 class MultiHeadAttention(nn.Module):
-    def __init__(self, num_hiddens, num_heads, model_dim=None, dropout=0.1, bias=False):
+    def __init__(self, num_heads, model_dim, dropout=0.1, bias=False):
         super().__init__()
 
         # save hyperparameters
         self.num_heads = num_heads
-        self.d_model = model_dim or num_hiddens
+        self.model_dim = model_dim
 
-        assert self.d_model % num_heads == 0, \
+        assert self.model_dim % num_heads == 0, \
             "model dimension must be divisible by number of heads. " \
-            f"got model_dimension {self.d_model} and num_heads {self.num_heads}"
+            f"got model_dimension {self.model_dim} and num_heads {self.num_heads}"
 
         # Dropout layer
         self.dropout = nn.Dropout(dropout)
 
         # projection matrices
-        self.W_q = nn.LazyLinear(num_hiddens, bias=bias)
-        self.W_k = nn.LazyLinear(num_hiddens, bias=bias)
-        self.W_v = nn.LazyLinear(num_hiddens, bias=bias)
-        self.W_o = nn.LazyLinear(num_hiddens, bias=bias)
+        self.W_q = nn.Linear(self.model_dim, self.model_dim, bias=bias)
+        self.W_k = nn.Linear(self.model_dim, self.model_dim, bias=bias)
+        self.W_v = nn.Linear(self.model_dim, self.model_dim, bias=bias)
+        self.W_o = nn.Linear(self.model_dim, self.model_dim, bias=bias)
 
     def forward(self, queries, keys, values, valid_len=None, casual_mask=False, mask_value=-10e6):
         batch_size, seq_length, model_dim = queries.size()  # using "seq_length" and "no. of queries" interchangeably
 
-        assert model_dim == self.d_model, \
-            f"input dimension must match model dimension got {self.d_model} and {model_dim}"
+        assert model_dim == self.model_dim, \
+            f"input dimension must match model dimension {self.model_dim}. got {model_dim}"
 
         # project q, k, v
         # shape (batch_size, seq_length, num_hiddens) -> shape (batch_size * num_heads, seq_length, model_dim / num_heads)

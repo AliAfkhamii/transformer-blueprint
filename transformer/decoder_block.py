@@ -7,15 +7,16 @@ from addnorm import AddNorm
 
 class DecoderBlock(nn.Module):
 
-    def __init__(self, num_hiddens, ff_dim, num_heads, model_dim, dropout=0.1, bias=False):
+    def __init__(self, ff_dim, num_heads, model_dim, self_att_dropout=0.1, cross_att_dropout=0.1, msa_norm_dropout=0.1,
+                 mca_norm_dropout=0.1, ff_norm_dropout=0.1, bias=False):
         super().__init__()
 
-        self.self_attention = MultiHeadAttention(num_hiddens, num_heads, model_dim, dropout=dropout, bias=bias)
-        self.cross_attention = MultiHeadAttention(num_hiddens, num_heads, model_dim, dropout=dropout, bias=bias)
+        self.self_attention = MultiHeadAttention(num_heads, model_dim, dropout=self_att_dropout, bias=bias)
+        self.cross_attention = MultiHeadAttention(num_heads, model_dim, dropout=cross_att_dropout, bias=bias)
         self.ffn = FeedForwardNetwork(model_dim, ff_dim)
-        self.add_norm1 = AddNorm(model_dim, dropout)
-        self.add_norm2 = AddNorm(model_dim, dropout)
-        self.add_norm3 = AddNorm(model_dim, dropout)
+        self.add_norm1 = AddNorm(model_dim, msa_norm_dropout)
+        self.add_norm2 = AddNorm(model_dim, mca_norm_dropout)
+        self.add_norm3 = AddNorm(model_dim, ff_norm_dropout)
 
     def forward(self, x, x_enc, valid_len):
         # masked Multi-Head Self Attention sublayer
