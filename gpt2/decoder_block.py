@@ -16,8 +16,9 @@ class DecoderBlock(nn.Module):
         self.dec_dropout = nn.Dropout(dec_dropout)
 
     def forward(self, x):
+        norm_x = self.att_norm(x)
         x = x + self.dec_dropout(self.attention(
-            self.att_norm(x), self.att_norm(x), self.att_norm(x), casual_mask=True)
+            norm_x, norm_x, norm_x, casual_mask=True)
         )
 
         return x + self.dec_dropout(

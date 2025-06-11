@@ -112,7 +112,7 @@ class MultiHeadAttention(nn.Module):
         shape = logits.size()
 
         if casual:
-            mask = torch.triu(torch.ones(shape[1], shape[1]), diagonal=1).bool()
+            mask = torch.triu(torch.ones(shape[1], shape[1], device=logits.device), diagonal=1).bool()
             return F.softmax(logits.masked_fill(mask, value=value), dim=-1)
 
         if valid_len is None:
